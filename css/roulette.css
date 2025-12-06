@@ -1,0 +1,220 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    width: 1080px;
+    height: 1920px;
+    margin: 0 auto;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    font-family: 'Arial', sans-serif;
+    overflow: hidden;
+    position: relative;
+}
+
+.hidden-btn {
+    position: absolute;
+    top: 20px;
+    width: 80px;
+    height: 80px;
+    background: transparent;
+    cursor: pointer;
+    z-index: 1000;
+}
+
+.hidden-btn.left {
+    left: 20px;
+}
+
+.hidden-btn.right {
+    right: 20px;
+}
+
+.dev-buttons {
+    position: absolute;
+    top: 120px;
+    left: 20px;
+    display: none;
+    flex-direction: column;
+    gap: 15px;
+    z-index: 999;
+}
+
+.dev-buttons.show {
+    display: flex;
+}
+
+.effect-btn {
+    padding: 15px 30px;
+    background: rgba(255, 255, 255, 0.9);
+    border: 2px solid #333;
+    border-radius: 10px;
+    font-size: 20px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.effect-btn:hover {
+    background: #fff;
+    transform: scale(1.05);
+}
+
+.effect-btn.used {
+    background: #ccc;
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+.container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+}
+
+.title {
+    font-size: 100px;
+    font-weight: bold;
+    color: #fff;
+    text-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    margin-bottom: 80px;
+}
+
+.roulette-container {
+    position: relative;
+    width: 800px;
+    height: 800px;
+}
+
+#rouletteCanvas {
+    border-radius: 50%;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.pointer {
+    position: absolute;
+    top: -40px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 40px solid transparent;
+    border-right: 40px solid transparent;
+    border-top: 80px solid #FFD700;
+    filter: drop-shadow(0 5px 10px rgba(0, 0, 0, 0.3));
+    z-index: 10;
+}
+
+.spin-btn {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 200px;
+    height: 200px;
+    background: linear-gradient(135deg, #FFD700, #FFA500);
+    border: 10px solid #fff;
+    border-radius: 50%;
+    color: #fff;
+    font-size: 40px;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    transition: all 0.3s ease;
+    z-index: 100;
+}
+
+.spin-btn:hover:not(:disabled) {
+    transform: translate(-50%, -50%) scale(1.1);
+}
+
+.spin-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+.effect-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 5;
+}
+
+/* 보라색 이펙트 */
+.effect-overlay.purple {
+    animation: purpleEffect 2s ease-in-out;
+}
+
+@keyframes purpleEffect {
+    0%, 100% {
+        background: transparent;
+    }
+    50% {
+        background: radial-gradient(circle, rgba(138, 43, 226, 0.4) 0%, transparent 70%);
+    }
+}
+
+/* 금색 이펙트 */
+.effect-overlay.gold {
+    animation: goldEffect 2s ease-in-out;
+}
+
+@keyframes goldEffect {
+    0%, 100% {
+        background: transparent;
+        box-shadow: none;
+    }
+    50% {
+        background: radial-gradient(circle, rgba(255, 215, 0, 0.3) 0%, transparent 70%);
+        box-shadow: inset 0 0 100px rgba(255, 215, 0, 0.5);
+    }
+}
+
+/* 과열 이펙트 */
+.effect-overlay.overheat {
+    animation: overheatEffect 2s ease-in-out;
+}
+
+@keyframes overheatEffect {
+    0%, 100% {
+        background: transparent;
+    }
+    25% {
+        background: radial-gradient(circle, rgba(255, 69, 0, 0.3) 0%, transparent 70%);
+    }
+    50% {
+        background: radial-gradient(circle, rgba(255, 0, 0, 0.4) 0%, transparent 70%);
+    }
+    75% {
+        background: radial-gradient(circle, rgba(255, 69, 0, 0.3) 0%, transparent 70%);
+    }
+}
+
+/* 룰렛 회전 시 추가 이펙트 */
+.roulette-container.spinning.purple #rouletteCanvas {
+    box-shadow: 0 20px 60px rgba(138, 43, 226, 0.8), 0 0 100px rgba(138, 43, 226, 0.5);
+}
+
+.roulette-container.spinning.gold #rouletteCanvas {
+    box-shadow: 0 20px 60px rgba(255, 215, 0, 0.8), 0 0 100px rgba(255, 215, 0, 0.5);
+}
+
+.roulette-container.spinning.overheat #rouletteCanvas {
+    box-shadow: 0 20px 60px rgba(255, 69, 0, 0.8), 0 0 100px rgba(255, 0, 0, 0.5);
+    animation: shake 0.3s infinite;
+}
+
+@keyframes shake {
+    0%, 100% { transform: rotate(0deg); }
+    25% { transform: rotate(-2deg); }
+    75% { transform: rotate(2deg); }
+}

@@ -1,0 +1,38 @@
+[
+  {
+    "id": 1,
+    "name": "1등 상품",
+    "quantity": 10,
+    "color": "#FF0000"
+  },
+  {
+    "id": 2,
+    "name": "2등 상품",
+    "quantity": 50,
+    "color": "#FF8800"
+  },
+  {
+    "id": 3,
+    "name": "3등 상품",
+    "quantity": 100,
+    "color": "#FFD700"
+  },
+  {
+    "id": 4,
+    "name": "4등 상품",
+    "quantity": 200,
+    "color": "#00FF00"
+  },
+  {
+    "id": 5,
+    "name": "5등 상품",
+    "quantity": 300,
+    "color": "#0088FF"
+  },
+  {
+    "id": 6,
+    "name": "꽝",
+    "quantity": 340,
+    "color": "#888888"
+  }
+]
