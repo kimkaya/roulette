@@ -17,8 +17,8 @@ body {
 .hidden-btn {
     position: absolute;
     top: 20px;
-    width: 80px;
-    height: 80px;
+    width: 100px;
+    height: 100px;
     background: transparent;
     cursor: pointer;
     z-index: 1000;
@@ -151,21 +151,42 @@ body {
 
 /* 보라색 이펙트 */
 .effect-overlay.purple {
-    animation: purpleEffect 2s ease-in-out;
+    animation: purpleEffect 2s ease-in-out, purplePulse 0.5s ease-in-out 3;
 }
 
 @keyframes purpleEffect {
     0%, 100% {
         background: transparent;
+        box-shadow: none;
+    }
+    25% {
+        background: radial-gradient(circle at 30% 30%, rgba(138, 43, 226, 0.6) 0%, transparent 50%);
+        box-shadow: inset 0 0 150px rgba(138, 43, 226, 0.8);
     }
     50% {
-        background: radial-gradient(circle, rgba(138, 43, 226, 0.4) 0%, transparent 70%);
+        background: radial-gradient(circle, rgba(186, 85, 211, 0.7) 0%, rgba(138, 43, 226, 0.5) 30%, transparent 70%);
+        box-shadow: inset 0 0 200px rgba(138, 43, 226, 1);
+    }
+    75% {
+        background: radial-gradient(circle at 70% 70%, rgba(138, 43, 226, 0.6) 0%, transparent 50%);
+        box-shadow: inset 0 0 150px rgba(138, 43, 226, 0.8);
+    }
+}
+
+@keyframes purplePulse {
+    0%, 100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.02);
+        opacity: 0.9;
     }
 }
 
 /* 금색 이펙트 */
 .effect-overlay.gold {
-    animation: goldEffect 2s ease-in-out;
+    animation: goldEffect 2s ease-in-out, goldShine 0.3s ease-in-out 5, goldRotate 2s linear;
 }
 
 @keyframes goldEffect {
@@ -173,48 +194,161 @@ body {
         background: transparent;
         box-shadow: none;
     }
+    20% {
+        background: radial-gradient(circle, rgba(255, 215, 0, 0.5) 0%, rgba(255, 223, 0, 0.3) 40%, transparent 70%);
+        box-shadow: inset 0 0 120px rgba(255, 215, 0, 0.7);
+    }
     50% {
-        background: radial-gradient(circle, rgba(255, 215, 0, 0.3) 0%, transparent 70%);
-        box-shadow: inset 0 0 100px rgba(255, 215, 0, 0.5);
+        background: radial-gradient(circle, rgba(255, 223, 0, 0.8) 0%, rgba(255, 215, 0, 0.5) 30%, rgba(255, 185, 0, 0.3) 60%, transparent 80%);
+        box-shadow: inset 0 0 200px rgba(255, 215, 0, 1), 0 0 100px rgba(255, 215, 0, 0.8);
+    }
+    80% {
+        background: radial-gradient(circle, rgba(255, 215, 0, 0.5) 0%, rgba(255, 223, 0, 0.3) 40%, transparent 70%);
+        box-shadow: inset 0 0 120px rgba(255, 215, 0, 0.7);
+    }
+}
+
+@keyframes goldShine {
+    0%, 100% {
+        filter: brightness(1);
+    }
+    50% {
+        filter: brightness(1.3) contrast(1.2);
+    }
+}
+
+@keyframes goldRotate {
+    0% {
+        background-position: 0% 50%;
+    }
+    100% {
+        background-position: 100% 50%;
     }
 }
 
 /* 과열 이펙트 */
 .effect-overlay.overheat {
-    animation: overheatEffect 2s ease-in-out;
+    animation: overheatEffect 2s ease-in-out, overheatFlash 0.2s ease-in-out 8, overheatDistortion 2s ease-in-out;
 }
 
 @keyframes overheatEffect {
     0%, 100% {
         background: transparent;
+        box-shadow: none;
+    }
+    10% {
+        background: radial-gradient(circle at 50% 50%, rgba(255, 140, 0, 0.4) 0%, rgba(255, 69, 0, 0.2) 50%, transparent 70%);
+        box-shadow: inset 0 0 100px rgba(255, 69, 0, 0.6);
     }
     25% {
-        background: radial-gradient(circle, rgba(255, 69, 0, 0.3) 0%, transparent 70%);
+        background: radial-gradient(circle at 30% 30%, rgba(255, 69, 0, 0.6) 0%, rgba(255, 0, 0, 0.3) 40%, transparent 70%);
+        box-shadow: inset 0 0 150px rgba(255, 0, 0, 0.8);
     }
     50% {
-        background: radial-gradient(circle, rgba(255, 0, 0, 0.4) 0%, transparent 70%);
+        background: radial-gradient(circle, rgba(255, 0, 0, 0.8) 0%, rgba(255, 69, 0, 0.6) 20%, rgba(255, 140, 0, 0.4) 40%, transparent 70%);
+        box-shadow: inset 0 0 200px rgba(255, 0, 0, 1), 0 0 80px rgba(255, 0, 0, 0.7);
     }
     75% {
-        background: radial-gradient(circle, rgba(255, 69, 0, 0.3) 0%, transparent 70%);
+        background: radial-gradient(circle at 70% 70%, rgba(255, 69, 0, 0.6) 0%, rgba(255, 0, 0, 0.3) 40%, transparent 70%);
+        box-shadow: inset 0 0 150px rgba(255, 0, 0, 0.8);
+    }
+    90% {
+        background: radial-gradient(circle at 50% 50%, rgba(255, 140, 0, 0.4) 0%, rgba(255, 69, 0, 0.2) 50%, transparent 70%);
+        box-shadow: inset 0 0 100px rgba(255, 69, 0, 0.6);
+    }
+}
+
+@keyframes overheatFlash {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.7;
+    }
+}
+
+@keyframes overheatDistortion {
+    0%, 100% {
+        transform: scale(1) rotate(0deg);
+    }
+    25% {
+        transform: scale(1.01) rotate(0.5deg);
+    }
+    50% {
+        transform: scale(1.02) rotate(-0.5deg);
+    }
+    75% {
+        transform: scale(1.01) rotate(0.3deg);
     }
 }
 
 /* 룰렛 회전 시 추가 이펙트 */
 .roulette-container.spinning.purple #rouletteCanvas {
-    box-shadow: 0 20px 60px rgba(138, 43, 226, 0.8), 0 0 100px rgba(138, 43, 226, 0.5);
+    box-shadow:
+        0 20px 60px rgba(138, 43, 226, 1),
+        0 0 100px rgba(138, 43, 226, 0.8),
+        0 0 150px rgba(138, 43, 226, 0.6),
+        inset 0 0 50px rgba(138, 43, 226, 0.4);
+    animation: purpleGlow 1s ease-in-out infinite;
 }
 
 .roulette-container.spinning.gold #rouletteCanvas {
-    box-shadow: 0 20px 60px rgba(255, 215, 0, 0.8), 0 0 100px rgba(255, 215, 0, 0.5);
+    box-shadow:
+        0 20px 60px rgba(255, 215, 0, 1),
+        0 0 120px rgba(255, 215, 0, 0.9),
+        0 0 180px rgba(255, 215, 0, 0.7),
+        0 0 240px rgba(255, 215, 0, 0.5),
+        inset 0 0 60px rgba(255, 215, 0, 0.5);
+    animation: goldGlow 0.8s ease-in-out infinite, goldFloat 2s ease-in-out infinite;
 }
 
 .roulette-container.spinning.overheat #rouletteCanvas {
-    box-shadow: 0 20px 60px rgba(255, 69, 0, 0.8), 0 0 100px rgba(255, 0, 0, 0.5);
-    animation: shake 0.3s infinite;
+    box-shadow:
+        0 20px 60px rgba(255, 69, 0, 1),
+        0 0 100px rgba(255, 0, 0, 0.9),
+        0 0 150px rgba(255, 69, 0, 0.7),
+        inset 0 0 50px rgba(255, 0, 0, 0.6);
+    animation: shake 0.15s infinite, overheatGlow 0.5s ease-in-out infinite;
 }
 
 @keyframes shake {
     0%, 100% { transform: rotate(0deg); }
-    25% { transform: rotate(-2deg); }
-    75% { transform: rotate(2deg); }
+    25% { transform: rotate(-3deg) scale(1.01); }
+    75% { transform: rotate(3deg) scale(1.01); }
+}
+
+@keyframes purpleGlow {
+    0%, 100% {
+        filter: brightness(1) saturate(1);
+    }
+    50% {
+        filter: brightness(1.2) saturate(1.3);
+    }
+}
+
+@keyframes goldGlow {
+    0%, 100% {
+        filter: brightness(1.1) saturate(1.2);
+    }
+    50% {
+        filter: brightness(1.4) saturate(1.5) contrast(1.1);
+    }
+}
+
+@keyframes goldFloat {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+@keyframes overheatGlow {
+    0%, 100% {
+        filter: brightness(1) hue-rotate(0deg);
+    }
+    50% {
+        filter: brightness(1.3) hue-rotate(10deg);
+    }
 }
