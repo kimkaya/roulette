@@ -28,10 +28,32 @@ const radius = canvas.width / 2;
 async function loadProducts() {
     try {
         const response = await fetch('api/get_products.php');
-        products = await response.json();
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        // 응답 검증
+        if (data.error) {
+            throw new Error(data.error);
+        }
+
+        if (!Array.isArray(data)) {
+            throw new Error('Invalid data format');
+        }
+
+        if (data.length === 0) {
+            alert('등록된 상품이 없습니다. 관리자에게 문의하세요.');
+            return;
+        }
+
+        products = data;
         drawRoulette();
     } catch (error) {
         console.error('상품 로드 실패:', error);
+        alert('상품 데이터를 불러오는데 실패했습니다: ' + error.message);
     }
 }
 
@@ -39,9 +61,16 @@ async function loadProducts() {
 function drawRoulette() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    if (products.length === 0) return;
+    if (!products || products.length === 0) return;
 
     const totalQuantity = products.reduce((sum, p) => sum + p.quantity, 0);
+
+    // 총 수량이 0인 경우 방지
+    if (totalQuantity === 0) {
+        console.error('Total quantity is 0');
+        return;
+    }
+
     let currentAngle = currentRotation;
 
     products.forEach(product => {
@@ -100,7 +129,16 @@ function getRandomEffect() {
 
 // 당첨 상품 선택
 function selectPrize() {
+    if (!products || products.length === 0) {
+        throw new Error('No products available');
+    }
+
     const totalQuantity = products.reduce((sum, p) => sum + p.quantity, 0);
+
+    if (totalQuantity === 0) {
+        throw new Error('Total quantity is 0');
+    }
+
     let random = Math.random() * totalQuantity;
 
     for (let product of products) {
@@ -115,7 +153,16 @@ function selectPrize() {
 
 // 상품의 각도 계산
 function getProductAngle(product) {
+    if (!products || products.length === 0) {
+        throw new Error('No products available');
+    }
+
     const totalQuantity = products.reduce((sum, p) => sum + p.quantity, 0);
+
+    if (totalQuantity === 0) {
+        throw new Error('Total quantity is 0');
+    }
+
     let angle = 0;
 
     for (let p of products) {
@@ -135,6 +182,12 @@ function getProductAngle(product) {
 // 룰렛 회전
 function spinRoulette() {
     if (isSpinning) return;
+
+    // 상품 데이터 확인
+    if (!products || products.length === 0) {
+        alert('등록된 상품이 없습니다.');
+        return;
+    }
 
     isSpinning = true;
     const spinBtn = document.getElementById('spinBtn');
@@ -177,42 +230,50 @@ function spinRoulette() {
     }
 
     // 당첨 상품 선택
-    const prize = selectPrize();
-    const targetAngle = getProductAngle(prize);
+    try {
+        const prize = selectPrize();
+        const targetAngle = getProductAngle(prize);
 
-    // 회전 애니메이션 (5바퀴 + 목표 각도)
-    const spins = 5;
-    const totalRotation = (spins * 360) + (360 - targetAngle);
-    const duration = 5000; // 5초
-    const startTime = Date.now();
-    const startRotation = currentRotation;
+        // 회전 애니메이션 (5바퀴 + 목표 각도)
+        const spins = 5;
+        const totalRotation = (spins * 360) + (360 - targetAngle);
+        const duration = 5000; // 5초
+        const startTime = Date.now();
+        const startRotation = currentRotation;
 
-    function animate() {
-        const now = Date.now();
-        const elapsed = now - startTime;
-        const progress = Math.min(elapsed / duration, 1);
+        function animate() {
+            const now = Date.now();
+            const elapsed = now - startTime;
+            const progress = Math.min(elapsed / duration, 1);
 
-        // easeOutCubic
-        const easeProgress = 1 - Math.pow(1 - progress, 3);
+            // easeOutCubic
+            const easeProgress = 1 - Math.pow(1 - progress, 3);
 
-        currentRotation = startRotation + (totalRotation * easeProgress * Math.PI / 180);
-        drawRoulette();
+            currentRotation = startRotation + (totalRotation * easeProgress * Math.PI / 180);
+            drawRoulette();
 
-        if (progress < 1) {
-            requestAnimationFrame(animate);
-        } else {
-            // 회전 완료
-            isSpinning = false;
-            spinBtn.disabled = false;
-            container.classList.remove('spinning', 'purple', 'gold', 'overheat');
+            if (progress < 1) {
+                requestAnimationFrame(animate);
+            } else {
+                // 회전 완료
+                isSpinning = false;
+                spinBtn.disabled = false;
+                container.classList.remove('spinning', 'purple', 'gold', 'overheat');
 
-            // 결과 페이지로 이동
-            sessionStorage.setItem('prize', JSON.stringify(prize));
-            location.href = 'result.php';
+                // 결과 페이지로 이동
+                sessionStorage.setItem('prize', JSON.stringify(prize));
+                location.href = 'result.php';
+            }
         }
-    }
 
-    requestAnimationFrame(animate);
+        requestAnimationFrame(animate);
+    } catch (error) {
+        console.error('Spin error:', error);
+        alert('룰렛 회전 중 오류가 발생했습니다: ' + error.message);
+        isSpinning = false;
+        spinBtn.disabled = false;
+        container.classList.remove('spinning', 'purple', 'gold', 'overheat');
+    }
 }
 
 // 개발자 버튼 (왼쪽 상단)

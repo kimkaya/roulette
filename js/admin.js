@@ -5,7 +5,23 @@ let nextId = 1;
 async function loadProducts() {
     try {
         const response = await fetch('api/get_products.php');
-        products = await response.json();
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        // 응답 검증
+        if (data.error) {
+            throw new Error(data.error);
+        }
+
+        if (!Array.isArray(data)) {
+            throw new Error('Invalid data format');
+        }
+
+        products = data;
 
         if (products.length > 0) {
             nextId = Math.max(...products.map(p => p.id)) + 1;
@@ -15,6 +31,7 @@ async function loadProducts() {
         updateTotalInfo();
     } catch (error) {
         console.error('상품 로드 실패:', error);
+        alert('상품 데이터를 불러오는데 실패했습니다: ' + error.message);
     }
 }
 
@@ -26,20 +43,73 @@ function renderProducts() {
     products.forEach((product, index) => {
         const item = document.createElement('div');
         item.className = 'product-item';
-        item.innerHTML = `
-            <label>ID: ${product.id}</label>
-            <input type="text" value="${product.name}" onchange="updateProduct(${index}, 'name', this.value)" placeholder="상품명">
-            <input type="number" value="${product.quantity}" onchange="updateProduct(${index}, 'quantity', parseInt(this.value))" placeholder="수량" min="0">
-            <input type="color" value="${product.color}" onchange="updateProduct(${index}, 'color', this.value)">
-            <button class="delete-btn" onclick="deleteProduct(${index})">삭제</button>
-        `;
+
+        // 안전하게 DOM 요소 생성
+        const label = document.createElement('label');
+        label.textContent = `ID: ${product.id}`;
+
+        const nameInput = document.createElement('input');
+        nameInput.type = 'text';
+        nameInput.value = product.name;
+        nameInput.placeholder = '상품명';
+        nameInput.addEventListener('change', (e) => updateProduct(index, 'name', e.target.value));
+
+        const quantityInput = document.createElement('input');
+        quantityInput.type = 'number';
+        quantityInput.value = product.quantity;
+        quantityInput.placeholder = '수량';
+        quantityInput.min = '0';
+        quantityInput.addEventListener('change', (e) => updateProduct(index, 'quantity', parseInt(e.target.value)));
+
+        const colorInput = document.createElement('input');
+        colorInput.type = 'color';
+        colorInput.value = product.color;
+        colorInput.addEventListener('change', (e) => updateProduct(index, 'color', e.target.value));
+
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'delete-btn';
+        deleteBtn.textContent = '삭제';
+        deleteBtn.addEventListener('click', () => deleteProduct(index));
+
+        item.appendChild(label);
+        item.appendChild(nameInput);
+        item.appendChild(quantityInput);
+        item.appendChild(colorInput);
+        item.appendChild(deleteBtn);
+
         productsList.appendChild(item);
     });
 }
 
 // 상품 업데이트
 function updateProduct(index, field, value) {
-    products[index][field] = value;
+    // 입력 검증
+    if (field === 'name') {
+        if (!value || value.trim() === '') {
+            alert('상품명을 입력해주세요.');
+            renderProducts();
+            return;
+        }
+        products[index][field] = value.trim();
+    } else if (field === 'quantity') {
+        const qty = parseInt(value);
+        if (isNaN(qty) || qty < 0) {
+            alert('수량은 0 이상의 숫자여야 합니다.');
+            renderProducts();
+            return;
+        }
+        products[index][field] = qty;
+    } else if (field === 'color') {
+        if (!/^#[0-9A-Fa-f]{6}$/.test(value)) {
+            alert('올바른 색상 코드를 입력해주세요.');
+            renderProducts();
+            return;
+        }
+        products[index][field] = value;
+    } else {
+        products[index][field] = value;
+    }
+
     updateTotalInfo();
 }
 
@@ -70,12 +140,30 @@ function addProduct() {
 function updateTotalInfo() {
     const total = products.reduce((sum, p) => sum + p.quantity, 0);
     const totalInfo = document.getElementById('totalInfo');
-    totalInfo.innerHTML = `전체 상품 수: <span>${products.length}</span>개 | 전체 수량: <span>${total}</span>개`;
+    totalInfo.textContent = `전체 상품 수: ${products.length}개 | 전체 수량: ${total}개`;
 }
 
 // 저장
 async function saveProducts() {
     try {
+        // 저장 전 데이터 검증
+        for (const product of products) {
+            if (!product.name || product.name.trim() === '') {
+                alert('상품명을 입력해주세요.');
+                return;
+            }
+
+            if (product.quantity < 0 || !Number.isInteger(product.quantity)) {
+                alert('수량은 0 이상의 정수여야 합니다.');
+                return;
+            }
+
+            if (!/^#[0-9A-Fa-f]{6}$/.test(product.color)) {
+                alert('올바른 색상 코드를 입력해주세요.');
+                return;
+            }
+        }
+
         const response = await fetch('api/save_products.php', {
             method: 'POST',
             headers: {
@@ -84,16 +172,20 @@ async function saveProducts() {
             body: JSON.stringify(products)
         });
 
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
         const result = await response.json();
 
         if (result.success) {
             alert('저장되었습니다!');
         } else {
-            alert('저장 실패: ' + result.error);
+            throw new Error(result.error || '저장에 실패했습니다.');
         }
     } catch (error) {
         console.error('저장 실패:', error);
-        alert('저장 중 오류가 발생했습니다.');
+        alert('저장 중 오류가 발생했습니다: ' + error.message);
     }
 }
 

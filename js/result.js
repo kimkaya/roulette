@@ -2,12 +2,24 @@
 const prizeData = sessionStorage.getItem('prize');
 let prize = null;
 
-if (prizeData) {
-    prize = JSON.parse(prizeData);
-    document.getElementById('prizeName').textContent = prize.name;
-    document.getElementById('prizeName').style.color = prize.color;
-} else {
-    // 상품 정보가 없으면 룰렛 페이지로 이동
+try {
+    if (prizeData) {
+        prize = JSON.parse(prizeData);
+
+        // 데이터 검증
+        if (!prize || !prize.name || !prize.color) {
+            throw new Error('Invalid prize data');
+        }
+
+        document.getElementById('prizeName').textContent = prize.name;
+        document.getElementById('prizeName').style.color = prize.color;
+    } else {
+        // 상품 정보가 없으면 룰렛 페이지로 이동
+        throw new Error('No prize data');
+    }
+} catch (error) {
+    console.error('Prize data error:', error);
+    // 상품 정보가 없거나 잘못되었으면 룰렛 페이지로 이동
     location.href = 'roulette.php';
 }
 
