@@ -136,7 +136,14 @@ body {
 
 .spin-btn:disabled {
     cursor: not-allowed;
-    opacity: 0.7;
+    opacity: 0.5;
+    background: linear-gradient(135deg, #999, #666);
+    transform: translate(-50%, -50%) scale(0.95);
+    filter: grayscale(80%);
+}
+
+.spin-btn:disabled:hover {
+    transform: translate(-50%, -50%) scale(0.95);
 }
 
 .effect-overlay {

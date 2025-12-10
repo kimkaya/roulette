@@ -1,6 +1,8 @@
 <?php
 header('Content-Type: application/json');
 
+require_once __DIR__ . '/file_lock_helper.php';
+
 $dataDir = __DIR__ . '/../data';
 $dataFile = $dataDir . '/products.json';
 
@@ -13,7 +15,8 @@ try {
     }
 
     if (file_exists($dataFile)) {
-        $data = file_get_contents($dataFile);
+        // 안전한 파일 읽기 (공유 잠금 사용)
+        $data = safeReadFile($dataFile);
 
         if ($data === false) {
             throw new Exception('Failed to read file');
@@ -31,7 +34,8 @@ try {
         $defaultData = [];
         $jsonData = json_encode($defaultData, JSON_PRETTY_PRINT);
 
-        if (file_put_contents($dataFile, $jsonData) === false) {
+        // 안전한 파일 쓰기 (배타적 잠금 사용)
+        if (!safeWriteFile($dataFile, $jsonData)) {
             throw new Exception('Failed to create default data file');
         }
 

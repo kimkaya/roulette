@@ -24,6 +24,37 @@ const centerX = canvas.width / 2;
 const centerY = canvas.height / 2;
 const radius = canvas.width / 2;
 
+// 룰렛 버튼 상태 업데이트
+function updateSpinButtonState() {
+    const spinBtn = document.getElementById('spinBtn');
+
+    if (!products || products.length === 0) {
+        spinBtn.disabled = true;
+        spinBtn.textContent = '상품 없음';
+        spinBtn.style.cursor = 'not-allowed';
+        spinBtn.style.opacity = '0.5';
+        return false;
+    }
+
+    // 재고가 있는 상품 확인
+    const availableProducts = products.filter(p => p.quantity > 0);
+
+    if (availableProducts.length === 0) {
+        spinBtn.disabled = true;
+        spinBtn.textContent = '재고 없음';
+        spinBtn.style.cursor = 'not-allowed';
+        spinBtn.style.opacity = '0.5';
+        return false;
+    }
+
+    // 재고가 있으면 버튼 활성화
+    spinBtn.disabled = false;
+    spinBtn.textContent = '돌리기';
+    spinBtn.style.cursor = 'pointer';
+    spinBtn.style.opacity = '1';
+    return true;
+}
+
 // 상품 데이터 로드
 async function loadProducts() {
     try {
@@ -46,14 +77,22 @@ async function loadProducts() {
 
         if (data.length === 0) {
             alert('등록된 상품이 없습니다. 관리자에게 문의하세요.');
+            products = [];
+            updateSpinButtonState();
             return;
         }
 
         products = data;
         drawRoulette();
+
+        // 재고 상태에 따라 버튼 업데이트
+        if (!updateSpinButtonState()) {
+            alert('모든 상품의 재고가 소진되었습니다. 관리자에게 문의하세요.');
+        }
     } catch (error) {
         console.error('상품 로드 실패:', error);
         alert('상품 데이터를 불러오는데 실패했습니다: ' + error.message);
+        updateSpinButtonState();
     }
 }
 
@@ -127,13 +166,20 @@ function getRandomEffect() {
     return null;
 }
 
-// 당첨 상품 선택
+// 당첨 상품 선택 (재고가 있는 상품만 선택)
 function selectPrize() {
     if (!products || products.length === 0) {
         throw new Error('No products available');
     }
 
-    const totalQuantity = products.reduce((sum, p) => sum + p.quantity, 0);
+    // 재고가 있는 상품만 필터링
+    const availableProducts = products.filter(p => p.quantity > 0);
+
+    if (availableProducts.length === 0) {
+        throw new Error('All products are out of stock');
+    }
+
+    const totalQuantity = availableProducts.reduce((sum, p) => sum + p.quantity, 0);
 
     if (totalQuantity === 0) {
         throw new Error('Total quantity is 0');
@@ -141,14 +187,14 @@ function selectPrize() {
 
     let random = Math.random() * totalQuantity;
 
-    for (let product of products) {
+    for (let product of availableProducts) {
         random -= product.quantity;
         if (random <= 0) {
             return product;
         }
     }
 
-    return products[products.length - 1];
+    return availableProducts[availableProducts.length - 1];
 }
 
 // 상품의 각도 계산
@@ -181,14 +227,36 @@ function getProductAngle(product) {
 
 // 룰렛 회전
 function spinRoulette() {
-    if (isSpinning) return;
-
-    // 상품 데이터 확인
-    if (!products || products.length === 0) {
-        alert('등록된 상품이 없습니다.');
+    // 1차 체크: 이미 회전 중인지
+    if (isSpinning) {
+        console.warn('Already spinning');
         return;
     }
 
+    // 2차 체크: 상품 데이터 확인
+    if (!products || products.length === 0) {
+        alert('등록된 상품이 없습니다. 룰렛을 돌릴 수 없습니다.');
+        updateSpinButtonState();
+        return;
+    }
+
+    // 3차 체크: 재고가 있는 상품이 있는지 확인
+    const availableProducts = products.filter(p => p.quantity > 0);
+    if (availableProducts.length === 0) {
+        alert('모든 상품의 재고가 소진되었습니다. 룰렛을 돌릴 수 없습니다.');
+        updateSpinButtonState();
+        return;
+    }
+
+    // 4차 체크: 총 재고량 확인
+    const totalQuantity = availableProducts.reduce((sum, p) => sum + p.quantity, 0);
+    if (totalQuantity <= 0) {
+        alert('사용 가능한 재고가 없습니다.');
+        updateSpinButtonState();
+        return;
+    }
+
+    // 모든 체크 통과 - 룰렛 실행
     isSpinning = true;
     const spinBtn = document.getElementById('spinBtn');
     spinBtn.disabled = true;
@@ -241,7 +309,7 @@ function spinRoulette() {
         const startTime = Date.now();
         const startRotation = currentRotation;
 
-        function animate() {
+        async function animate() {
             const now = Date.now();
             const elapsed = now - startTime;
             const progress = Math.min(elapsed / duration, 1);
@@ -255,14 +323,53 @@ function spinRoulette() {
             if (progress < 1) {
                 requestAnimationFrame(animate);
             } else {
-                // 회전 완료
-                isSpinning = false;
-                spinBtn.disabled = false;
-                container.classList.remove('spinning', 'purple', 'gold', 'overheat');
+                // 회전 완료 - 재고 감소 시도
+                try {
+                    const response = await fetch('api/decrease_stock.php', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            productId: prize.id
+                        })
+                    });
 
-                // 결과 페이지로 이동
-                sessionStorage.setItem('prize', JSON.stringify(prize));
-                location.href = 'result.php';
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+
+                    const result = await response.json();
+
+                    if (!result.success) {
+                        throw new Error(result.error || 'Failed to decrease stock');
+                    }
+
+                    // 재고 감소 성공 - 결과 페이지로 이동
+                    isSpinning = false;
+                    spinBtn.disabled = false;
+                    container.classList.remove('spinning', 'purple', 'gold', 'overheat');
+
+                    sessionStorage.setItem('prize', JSON.stringify(prize));
+                    location.href = 'result.php';
+
+                } catch (error) {
+                    console.error('재고 감소 실패:', error);
+
+                    isSpinning = false;
+                    container.classList.remove('spinning', 'purple', 'gold', 'overheat');
+
+                    // 재고 부족 또는 오류 처리
+                    if (error.message.includes('out of stock')) {
+                        alert('죄송합니다. 해당 상품의 재고가 소진되었습니다. 다시 시도해주세요.');
+                        // 상품 데이터 다시 로드하고 버튼 상태 업데이트
+                        await loadProducts();
+                    } else {
+                        alert('오류가 발생했습니다: ' + error.message + '\n다시 시도해주세요.');
+                        // 상품 데이터 다시 로드하고 버튼 상태 업데이트
+                        await loadProducts();
+                    }
+                }
             }
         }
 

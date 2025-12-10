@@ -1,6 +1,8 @@
 <?php
 header('Content-Type: application/json');
 
+require_once __DIR__ . '/file_lock_helper.php';
+
 $dataDir = __DIR__ . '/../data';
 $dataFile = $dataDir . '/products.json';
 
@@ -49,13 +51,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
 
-        // 파일 저장
+        // 파일 저장 (배타적 잠금 사용)
         $jsonData = json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
         if ($jsonData === false) {
             throw new Exception('Failed to encode JSON');
         }
 
-        if (file_put_contents($dataFile, $jsonData) === false) {
+        // 안전한 파일 쓰기 (파일 잠금 적용)
+        if (!safeWriteFile($dataFile, $jsonData)) {
             throw new Exception('Failed to write to file');
         }
 
